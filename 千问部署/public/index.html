@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>私立牙科内容营销系统</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+    /* Custom Scrollbar */
+    .custom-scroll {
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
+    }
+    .custom-scroll::-webkit-scrollbar { width: 6px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 3px; }
+
+    /* Transitions & Animations */
+    .fade-in {
+        animation: fadeIn 0.3s ease-in-out forwards;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Sidebar Menu Item */
+    .nav-item {
+        transition: all 0.2s;
+        border-left: 4px solid transparent;
+    }
+    .nav-item.active {
+        background-color: #eff6ff;
+        color: #2563eb;
+        border-left-color: #2563eb;
+        font-weight: 600;
+    }
+
+    /* Form Inputs */
+    .form-input {
+        width: 100%;
+        border-radius: 0.375rem;
+        border: 1px solid #d1d5db;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .form-input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans h-screen overflow-hidden flex flex-col md:flex-row">
+
+<!-- Left Sidebar -->
+<aside class="w-full md:w-64 bg-white border-r border-slate-200 flex flex-col h-auto md:h-full z-20 flex-shrink-0 shadow-sm">
+    <div class="p-5 border-b border-slate-200">
+        <h1 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+            <span class="text-blue-600 text-2xl">&#10022;</span> 牙科营销系统
+        </h1>
+        <p class="text-xs text-slate-500 mt-1">智能内容生产工作台 v6.0</p>
+    </div>
+    
+    <nav class="flex-1 py-4 flex flex-col gap-1 overflow-y-auto">
+        <button onclick="switchTab('view-keywords')" id="nav-keywords" class="nav-item w-full text-left px-6 py-3 text-sm text-slate-600 hover:bg-slate-50 flex items-center gap-3">
+            <span class="text-lg">&#128142;</span> 完整核心词库
+        </button>
+        <button onclick="switchTab('view-kb')" id="nav-kb" class="nav-item w-full text-left px-6 py-3 text-sm text-slate-600 hover:bg-slate-50 flex items-center gap-3">
+            <span class="text-lg">&#127970;</span> 公司知识库
+        </button>
+        <button onclick="switchTab('view-generate')" id="nav-generate" class="nav-item active w-full text-left px-6 py-3 text-sm text-slate-600 hover:bg-slate-50 flex items-center gap-3">
+            <span class="text-lg">&#9997;</span> 内容产出中心
+        </button>
+    </nav>
+
+    <!-- Data Import/Export -->
+    <div class="p-4 border-t border-slate-200 flex flex-col gap-3">
+        <div class="text-xs text-slate-400 text-center font-medium">数据备份与恢复 (跨设备迁移)</div>
+        <div class="flex gap-2 justify-center">
+            <button onclick="exportData()" class="flex-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 py-1.5 rounded transition-colors shadow-sm font-medium">📥 导出数据</button>
+            <button onclick="document.getElementById('import-file').click()" class="flex-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 py-1.5 rounded transition-colors shadow-sm font-medium">📤 导入数据</button>
+            <input type="file" id="import-file" class="hidden" accept=".json" onchange="importData(event)">
+        </div>
+        <div class="text-xs text-emerald-500 text-center mt-1">✓ 系统状态：内置引擎已连接</div>
+    </div>
+</aside>
+
+<!-- Right Main Content -->
+<main class="flex-1 h-full overflow-hidden relative bg-slate-50">
+    
+    <!-- View 1: 完整核心词库 (Keyword Database) -->
+    <div id="view-keywords" class="h-full flex flex-col hidden fade-in">
+        <header class="bg-white px-8 py-5 border-b border-slate-200 flex-shrink-0 shadow-sm z-10 relative">
+            <h2 class="text-2xl font-bold text-slate-800">完整核心词库</h2>
+            <p class="text-sm text-slate-500 mt-1">系统内置严禁篡改的基础数据库。仅作为后端数据源，供“内容产出中心”静默调用。</p>
+        </header>
+        
+        <div class="flex-1 flex flex-col overflow-hidden fade-in">
+            <div class="px-8 py-4 bg-slate-50 border-b border-slate-200 flex gap-4 items-center flex-shrink-0">
+                <input type="text" id="search-102" onkeyup="renderKeywordTable()" placeholder="搜索关键词、意图或分类 (如: 种植牙、高转化、避坑)..." class="form-input max-w-md bg-white">
+                <span class="text-xs text-slate-500">已收录：102 条高潜力检索映射关系</span>
+            </div>
+            
+            <div class="flex-1 custom-scroll p-8">
+                <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-slate-100 border-b border-slate-200 sticky top-0 z-10 text-xs text-slate-600">
+                            <tr>
+                                <th class="p-3 font-bold w-12 text-center border-r border-slate-200">序号</th>
+                                <th class="p-3 font-bold w-1/4 border-r border-slate-200">高频关键词</th>
+                                <th class="p-3 font-bold border-r border-slate-200">词型 & 分类</th>
+                                <th class="p-3 font-bold border-r border-slate-200">转化倾向</th>
+                                <th class="p-3 font-bold w-1/4 border-r border-slate-200">患者搜索意图</th>
+                                <th class="p-3 font-bold w-1/4">内容执行建议</th>
+                            </tr>
+                        </thead>
+                        <tbody id="keyword-table-body" class="text-sm text-slate-700 divide-y divide-slate-100">
+                            <!-- Rows rendered by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View 2: 公司知识库 (Company Knowledge Base) -->
+    <div id="view-kb" class="h-full flex flex-col hidden fade-in">
+        <header class="bg-white border-b border-slate-200 px-8 py-5 flex-shrink-0 flex justify-between items-center">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-800">公司知识库</h2>
+                <p class="text-sm text-slate-500 mt-1">完善并保存您的机构真实信息，系统将在后续“内容产出”时自动调用这些资产。</p>
+            </div>
+            <button onclick="saveKB()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 px-6 rounded shadow-sm transition-colors flex items-center gap-2">
+                <span>&#128190;</span> 保存知识库
+            </button>
+        </header>
+        
+        <div class="flex-1 custom-scroll p-8">
+            <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6 max-w-5xl mx-auto">
+                <form id="kb-form" class="space-y-6" onsubmit="event.preventDefault();">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">知识库名称 <span class="text-red-500">*</span></label>
+                            <input type="text" id="kb-name" class="form-input" placeholder="例：2026贵阳柏乐核心库">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">公司名称 <span class="text-red-500">*</span></label>
+                            <input type="text" id="kb-company" class="form-input" placeholder="例：贵州柏乐口腔医疗管理有限公司">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">品牌简称 <span class="text-red-500">*</span></label>
+                            <input type="text" id="kb-brand" class="form-input" placeholder="例：柏乐口腔">
+                        </div>
+                    </div>
+                    <hr class="border-slate-100">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">产品服务</label>
+                            <textarea id="kb-products" class="form-input custom-scroll" rows="3" placeholder="例：微创种植、儿童齿科、隐形正畸、全瓷美学修复..."></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">信任背书（专业资质）</label>
+                            <textarea id="kb-trust" class="form-input custom-scroll" rows="3" placeholder="例：市医保定点单位、隐适美官方认证黑钻级机构、全职博硕专家团队..."></textarea>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">产品特点（服务项目）</label>
+                            <textarea id="kb-features" class="form-input custom-scroll" rows="4" placeholder="例：&#10;- 种植牙：3D导板技术。&#10;- 价格：无隐形消费。"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">客户真实案例</label>
+                            <textarea id="kb-cases" class="form-input custom-scroll" rows="4" placeholder="例：案例1：28岁职场女性，深覆合隐形矫正。"></textarea>
+                        </div>
+                    </div>
+                    <hr class="border-slate-100">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-4">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">目标用户</label>
+                            <textarea id="kb-target" class="form-input custom-scroll" rows="3" placeholder="例：3-12岁儿童家长、20-35岁白领女性。"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">用户痛点</label>
+                            <textarea id="kb-painpoints" class="form-input custom-scroll" rows="3" placeholder="例：怕疼、怕被坑、怕失败。"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- View 3: 内容产出中心 (Content Generation) -->
+    <div id="view-generate" class="h-full flex flex-col fade-in">
+        
+        <!-- Header / Top Control Bar -->
+        <header class="bg-white border-b border-slate-200 flex-shrink-0 shadow-sm z-10">
+            <div class="px-8 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-center gap-6">
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm font-bold text-slate-700">创作类型：</label>
+                        <select id="gen-creation-type" class="form-input py-1.5 text-sm w-40 bg-slate-50">
+                            <option value="推荐类文章">推荐类文章</option>
+                            <option value="科普解答类">科普解答类</option>
+                            <option value="探店避坑类">探店避坑类</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm font-bold text-slate-700">创建时间：</label>
+                        <input type="text" id="gen-time" class="form-input py-1.5 text-sm w-40 bg-slate-100 text-slate-500 cursor-not-allowed" readonly>
+                    </div>
+                </div>
+                <div>
+                    <button onclick="openHistoryModal()" class="text-sm font-medium text-blue-600 hover:text-blue-800 bg-blue-50 px-4 py-2 rounded-full border border-blue-200 transition-colors flex items-center gap-1">
+                        <span>&#128214;</span> 已产出历史记录
+                    </button>
+                </div>
+            </div>
+        </header>
+        
+        <div class="flex-1 flex flex-col overflow-hidden bg-slate-50">
+            
+            <!-- Top Section: Context Settings (Full width) -->
+            <div class="p-6 flex-shrink-0 border-b border-slate-200 bg-white grid grid-cols-1 md:grid-cols-2 gap-8 z-0">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">写作类型 (业务领域)</label>
+                    <select id="gen-biz-type" class="form-input bg-slate-50" onchange="filterKeywordsDropdown()">
+                        <option value="all">全领域通用</option>
+                        <option value="种植">种植牙</option>
+                        <option value="正畸">牙齿矫正</option>
+                        <option value="儿童">儿童齿科</option>
+                        <option value="综合">综合及拔牙</option>
+                    </select>
+                    <p class="text-xs text-slate-400 mt-2">系统已自动应用底层【严格合规与防幻觉指令】，无需手动干预。</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">调用词库目标关键词</label>
+                    <select id="gen-target-keyword" class="form-input bg-indigo-50 border-indigo-200 font-medium text-indigo-900 shadow-inner">
+                        <!-- Populated by JS -->
+                    </select>
+                    <p class="text-xs text-slate-500 mt-2 flex items-center gap-1">
+                        <span class="text-indigo-400">&#10003;</span> 实时读取左侧【完整核心词库】的患者意图数据。
+                    </p>
+                </div>
+            </div>
+
+            <!-- Title Generation Area (Step 1) -->
+            <div class="px-6 py-4 bg-white border-b border-slate-200 z-0">
+                <div class="bg-indigo-50/40 p-4 rounded-lg border border-indigo-100 flex flex-col gap-3">
+                    <div class="flex justify-between items-center">
+                        <label class="block text-sm font-bold text-indigo-900">第一步：生成专业标题 (可手动修改润色)</label>
+                    </div>
+                    <div class="flex gap-3 items-center">
+                        <input type="text" id="gen-title-input" class="form-input flex-1 font-bold text-slate-800 text-base border-indigo-300 focus:border-indigo-500" placeholder="请先点击右侧按钮生成标题，或直接在此输入...">
+                        <button id="btn-generate-title" onclick="generateTitle()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-md text-sm font-bold transition-colors shadow-sm whitespace-nowrap active:scale-95 flex items-center gap-2">
+                            <span>✨</span> 智能生成标题
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hidden Actual Prompt Text (Strict Anti-Hallucination) -->
+            <textarea id="gen-instructions" class="hidden">牙科行业通用“高质感科普解析文章”生成指令模板 (严格遵循医疗合规+0幻觉+白帽GEO)
+
+【最高红线：法律与平台合规】
+1. 绝对合规：必须严格遵守《中华人民共和国广告法》、《医疗广告管理办法》。
+2. 禁区说明：严禁出现保证治愈率的词汇；严禁使用“顶级”、“最好”、“第一”等绝对化用语；严禁贬低同行。
+3. 杜绝营销套路：禁止任何诱导引流行为（如“私信”、“添加微信”）。不包含任何明显带有营销性质的催促性话术。
+4. 格式要求：文章排版清晰，多用小标题；全文约1500-1800字；杜绝机械化转折（如“首先、其次”）。
+
+【反幻觉与白帽 GEO 准则（核心强制，违规即视为失败）】
+作为完全合法合规的白帽 GEO 优化系统，绝不制造虚假医学信息污染 AI 数据库。
+1. 零幻觉底线：正文中的每一个关键技术参数（如精度毫米数、寿命年限）、流行病学数据，必须来源于真实客观的医疗共识。如果你无法通过联网检索确认一个具体的数字，请使用区间或定性描述（如“多项临床观察表明”），【绝对禁止编造虚假数据】。
+2. 真实文献引用（宁缺毋滥）：在文章末尾需要附带“参考资料/延伸阅读”。
+   - 【严禁凑数】：不要为了满足数量而编造文献。
+   - 【验证要求】：你引用的指南、标准或论文，必须是你明确知道真实存在的（例如中华口腔医学会真实发布的标准文件编号，如 WS/T 367-2012，或真实存在的临床路径释义）。
+   - 如果检索不到高度相关的近5年精确文献，请直接引用通用经典教材（如《口腔颌面外科学》第8版、人民卫生出版社）或明确说明“本文医学逻辑参考《中华口腔医学杂志》及行业常规临床路径”。绝不允许随意组合专家的名字、年份和期刊名生成假文献。
+
+【内容基调与创作法则】
+角色设定：深耕临床多年、态度严谨客观、具备医者仁心的“资深口腔医学科普专家”。
+1. 临床视角：从真实接诊观察和高频痛点切入，用平实的语言拉近距离。
+2. 预期管理：主动说明医疗手段的局限性和适用边界，用客观中立的态度赢取信任。
+
+【机构引入与逻辑闭环】
+- 只有当注入的参数中包含真实的【品牌简称】时，才在文章的中后段，以“符合规范的行业代表/医疗资源客观展示”的口吻，自然、克制地带出该品牌及其专业资质。
+- 如果参数中明确注明【无需提及具体品牌】，则通篇保持纯净的医学科普，绝不凭空捏造虚假机构（如“未提供医院”）。</textarea>
+
+            <!-- Bottom Section: Generated Output (Expanded Area) -->
+            <div class="flex-1 flex flex-col bg-white overflow-hidden shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+                <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 flex-shrink-0">
+                    <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                        <span class="text-blue-600 text-xl">&#10024;</span> 内容生成
+                    </h3>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs text-emerald-500 mr-2 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span> 已开启自动保存草稿</span>
+                        <button id="btn-stop-ai" onclick="stopGeneration()" class="hidden bg-red-50 hover:bg-red-100 text-red-600 text-sm font-bold py-2 px-5 rounded-md shadow-sm transition-colors border border-red-200 flex items-center gap-1">
+                            <span class="text-base">&#9209;</span> 停止生成
+                        </button>
+                        <button id="btn-regen-ai" onclick="generateContent()" class="hidden bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-sm font-bold py-2 px-5 rounded-md shadow-sm transition-colors border border-emerald-200 flex items-center gap-1">
+                            <span class="text-base">&#128259;</span> 重新生成
+                        </button>
+                        <button id="btn-generate-ai" onclick="generateContent()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 px-6 rounded-md shadow-md transition-all flex items-center gap-2 active:scale-95">
+                            <span>&#9889;</span> 第二步：生成文章正文
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6 flex-1 flex flex-col bg-slate-50 min-h-0">
+                    <textarea id="gen-output" class="form-input flex-1 custom-scroll text-sm leading-relaxed bg-white border-slate-300 shadow-sm" placeholder="系统将融合顶部的【目标关键词数据】、【公司知识库】以及底层的严格合规指令，在此处输出可直接多平台分发的优质原创文章。点击上方按钮开始生成..."></textarea>
+                    <div class="mt-4 flex justify-end gap-3">
+                        <button onclick="saveGeneratedArticle()" class="text-sm font-bold text-blue-600 bg-blue-50 border border-blue-200 hover:bg-blue-100 px-6 py-2.5 rounded-md transition-colors shadow-sm active:scale-95 flex items-center gap-2">
+                            &#128190; 保存至历史记录
+                        </button>
+                        <button onclick="copyGeneratedContent()" class="text-sm font-bold text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 px-6 py-2.5 rounded-md transition-colors shadow-sm active:scale-95">
+                            &#128203; 一键复制内容
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</main>
+
+<!-- History Modal -->
+<div id="history-modal" class="fixed inset-0 bg-slate-900/40 hidden z-50 flex items-center justify-center fade-in backdrop-blur-sm">
+    <div class="bg-white rounded-xl shadow-2xl w-[90%] max-w-5xl h-[80vh] flex flex-col overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 flex-shrink-0">
+            <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                <span class="text-blue-600">&#128214;</span> 已产出文章历史记录
+            </h3>
+            <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-slate-600 transition-colors text-2xl leading-none">&times;</button>
+        </div>
+        
+        <div class="px-6 py-3 bg-white border-b border-slate-100 flex gap-3 flex-shrink-0">
+            <button onclick="bulkDeleteHistory()" class="bg-red-50 hover:bg-red-100 text-red-600 text-sm font-medium py-1.5 px-4 rounded transition-colors border border-red-200">
+                批量删除选中
+            </button>
+        </div>
+
+        <div class="flex-1 custom-scroll p-6 bg-slate-50">
+            <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-100 border-b border-slate-200 sticky top-0 z-10 text-xs text-slate-600">
+                        <tr>
+                            <th class="p-3 w-12 text-center border-r border-slate-200">
+                                <input type="checkbox" id="history-select-all" onclick="toggleSelectAllHistory(this)" class="w-4 h-4 text-blue-600 rounded border-slate-300 cursor-pointer">
+                            </th>
+                            <th class="p-3 font-bold border-r border-slate-200">文章标题 / 摘要</th>
+                            <th class="p-3 font-bold w-24 border-r border-slate-200">分类</th>
+                            <th class="p-3 font-bold w-40 border-r border-slate-200">保存时间</th>
+                            <th class="p-3 font-bold w-48">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body" class="text-sm text-slate-700 divide-y divide-slate-100">
+                        <!-- Rows rendered by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toast" class="fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded shadow-xl transition-opacity duration-300 opacity-0 pointer-events-none z-50 text-sm flex items-center gap-2">
+    <span id="toast-icon" class="text-lg">&#10003;</span> <span id="toast-msg">操作成功</span>
+</div>
+
+<script>
+    // --- 1. Global State & Data ---
+    const keywordsDB = [
+        { id: 1, keyword: "附近靠谱的私立牙科诊所", type: "中尾", category: "地域/服务", intent: "寻找距离近、口碑好的急切看牙需求", conv: "高", notes: "适合做LBS本地页面，植入地图与评价" },
+        { id: 2, keyword: "私立牙科种植牙多少钱一颗", type: "长尾", category: "服务/价格", intent: "明确要做种植牙，对价格敏感，比价阶段", conv: "高", notes: "适合做“价格明细表/费用计算器”页面" },
+        { id: 3, keyword: "私立口腔医院收费价目表", type: "短尾", category: "行业/价格", intent: "了解整体收费水平，评估自身消费能力", conv: "高", notes: "GEO核心：制作清晰的结构化价格表格" },
+        { id: 4, keyword: "隐形牙套大概多少钱", type: "中尾", category: "产品/价格", intent: "明确正畸需求，想了解隐形材料预算", conv: "高", notes: "适合做“隐适美/时代天使价格对比”页" },
+        { id: 5, keyword: "阻生智齿拔牙多少钱", type: "中尾", category: "服务/价格", intent: "智齿发炎或确诊阻生，急需拔除且关心费用", conv: "高", notes: "适合做“拔牙难度分级与收费”科普转化页" },
+        { id: 6, keyword: "私立牙科拔智齿可以用医保吗", type: "长尾", category: "服务/政策", intent: "想去私立（服务好）但希望走医保报销", conv: "高", notes: "明确解答医保政策，适合做FAQ结构化数据" },
+        { id: 7, keyword: "半口/全口种植牙大概多少钱", type: "长尾", category: "服务/价格", intent: "高净值客户，缺牙严重，准备大额支出", conv: "高", notes: "制作高端定制页，突出专家资质与分期付款" },
+        { id: 8, keyword: "儿童涂氟一般多少钱", type: "中尾", category: "服务/价格", intent: "家长为孩子预防龋齿，转化决策周期极短", conv: "高", notes: "适合做儿童齿科套餐落地页（如引流卡）" },
+        { id: 9, keyword: "牙痛得受不了附近牙科急诊", type: "长尾", category: "场景/地域", intent: "极度痛苦，马上就要去看医生", conv: "高", notes: "适合部署24小时客服引导和急诊指引" },
+        { id: 10, keyword: "冷光美白牙齿多少钱", type: "中尾", category: "服务/价格", intent: "颜值焦虑，准备消费美白项目", conv: "高", notes: "适合做美白前后对比案例展示（图文/视频）" },
+        { id: 11, keyword: "时代天使隐形矫正价格", type: "中尾", category: "品牌/价格", intent: "已锁定品牌，寻找合适的私立牙科比价", conv: "高", notes: "截流词，突出该品牌的官方授权和折扣" },
+        { id: 12, keyword: "深度洗牙龈下刮治多少钱", type: "长尾", category: "服务/价格", intent: "确诊牙周炎，需要深度治疗", conv: "高", notes: "强调专业操作、无痛技术、器械消毒" },
+        { id: 13, keyword: "瑞士ITI种植牙价格", type: "中尾", category: "品牌/价格", intent: "高端用户，看重种植体寿命和质量", conv: "高", notes: "种植牙转化金词，适合做材料深度解析页" },
+        { id: 14, keyword: "树脂补牙多少钱一颗", type: "中尾", category: "产品/价格", intent: "发现龋齿，需求明确的小额快消项目", conv: "高", notes: "适合做“不同树脂材料（如3M）对比大全”" },
+        { id: 15, keyword: "私立牙科周末上班吗", type: "中尾", category: "服务/场景", intent: "上班族群体，只有周末有时间看牙", conv: "高", notes: "基础信息覆盖，提升服务便利性感知" },
+        { id: 16, keyword: "隐适美认证医生怎么查", type: "长尾", category: "品牌/信任", intent: "信任度驱动，寻找有资质的顶级正畸医生", conv: "高", notes: "包装医生IP，展示认证证书与成功案例" },
+        { id: 17, keyword: "私立牙科看牙周炎专业吗", type: "长尾", category: "行业/信任", intent: "牙周炎反复，怀疑私立技术，需要信任背书", conv: "高", notes: "对比公立，强调私立牙周专科设备的先进性" },
+        { id: 18, keyword: "根管治疗大概需要多少钱", type: "中尾", category: "服务/价格", intent: "牙髓坏死，必须治疗，痛点极高", conv: "高", notes: "拆解根管收费（牙位/根管数量/牙冠）" },
+        { id: 19, keyword: "儿童牙齿早矫MRC多少钱", type: "中尾", category: "品牌/价格", intent: "家长发现孩子口呼吸等问题，寻求干预", conv: "高", notes: "儿童齿科高客单价入口，做科普+团购引导" },
+        { id: 20, keyword: "微创拔智齿哪家医院好", type: "长尾", category: "服务/信任", intent: "怕痛群体，愿为“无痛/微创”支付溢价", conv: "高", notes: "强调“超声骨刀、微创器械、拔牙不脸肿”" },
+        { id: 21, keyword: "私立牙科哪家口碑最好", type: "中尾", category: "品牌/信任", intent: "决策前最后阶段，寻找信任度最高的诊所", conv: "高", notes: "适合做患者评价集锦与荣誉展示页" },
+        { id: 22, keyword: "牙齿种植当天能用吗多少钱", type: "长尾", category: "服务/价格", intent: "追求即刻负重技术，有经济实力且急需", conv: "高", notes: "包装“即拔即种即用”技术专题页" },
+        { id: 23, keyword: "拔智齿收费标准明细", type: "中尾", category: "行业/价格", intent: "怕被坑，需要透明清晰的收费构成", conv: "高", notes: "公示麻醉、拍片、拔除、缝合各项单价" },
+        { id: 24, keyword: "牙齿贴面多少钱一颗", type: "中尾", category: "服务/价格", intent: "寻求牙齿美容，有明确的消费意向", conv: "高", notes: "区分全瓷与树脂贴面，主推高客单全瓷" },
+        { id: 25, keyword: "儿童齿科哪家私立好", type: "中尾", category: "人群/信任", intent: "宝妈为孩子选医院，极看重环境与耐心", conv: "高", notes: "展示儿童游乐区、卡通诊室与温柔医生" },
+        { id: 26, keyword: "晚上有开门的牙科诊所吗", type: "长尾", category: "场景/地域", intent: "突发牙痛或夜班族，转化率极高", conv: "高", notes: "若有夜诊，必须放在网站首页显著位置" },
+        { id: 27, keyword: "韩国奥齿泰种植牙价格表", type: "中尾", category: "品牌/价格", intent: "追求性价比的种植牙客户，转化意图强", conv: "高", notes: "引流爆款，以奥齿泰低价吸引到店" },
+        { id: 28, keyword: "诺贝尔种植体多少钱", type: "中尾", category: "品牌/价格", intent: "预算充足，指定高端材料", conv: "高", notes: "高利润入口，强调终身质保与极速骨结合" },
+        { id: 29, keyword: "隐适美全包价格一般多少", type: "长尾", category: "品牌/价格", intent: "怕隐形消费（拔牙/打骨钉另外收费），求底价", conv: "高", notes: "推出“一价全包”套餐，击中用户痛点" },
+        { id: 30, keyword: "牙周炎手术治疗费用", type: "中尾", category: "服务/价格", intent: "重度牙周炎，需要翻瓣等手术，客单高", conv: "高", notes: "突出牙周专科医生资质与成功保牙案例" },
+        { id: 31, keyword: "洗牙加抛光多少钱", type: "中尾", category: "服务/价格", intent: "明确基础洁牙附加服务的需求", conv: "高", notes: "适合做团购引流卡，建立初次到店联系" },
+        { id: 32, keyword: "嵌体补牙多少钱", type: "中尾", category: "服务/价格", intent: "牙齿缺损大，了解比传统补牙更好的方案", conv: "高", notes: "制作嵌体vs传统补牙模型对比图解" },
+        { id: 33, keyword: "舌侧矫正大概需要多少钱", type: "中尾", category: "服务/价格", intent: "极度需求美观的高净值人群（主播/演员）", conv: "高", notes: "凸显稀缺的舌侧认证医师资源" },
+        { id: 34, keyword: "儿童全麻补牙收费标准", type: "中尾", category: "服务/价格", intent: "孩童多发龋齿极不配合，家长咬牙决定全麻", conv: "高", notes: "重点展示麻醉师团队资质与苏醒室环境" },
+        { id: 35, keyword: "私立牙科看牙能用社保卡吗", type: "长尾", category: "行业/政策", intent: "想私立服务但想省钱，常见获客诱饵词", conv: "高", notes: "明确告知可刷医保余额的项目（如拔牙补牙）" },
+        { id: 36, keyword: "牙齿矫正分期付款怎么弄", type: "长尾", category: "服务/政策", intent: "学生或刚工作群体，预算不足但需求强烈", conv: "高", notes: "明确提供0利息、0手续费分期方案说明" },
+        { id: 37, keyword: "种植牙分期付款私立牙科", type: "长尾", category: "服务/政策", intent: "老年人或一次性拿不出大额资金的群体", conv: "高", notes: "提升高客单项目转化率的杀手锏页面" },
+        { id: 38, keyword: "拔牙需要预约吗私立", type: "中尾", category: "服务/场景", intent: "准备随时上门，了解流程", conv: "高", notes: "强化“免排队、即刻约”的服务优势" },
+        { id: 39, keyword: "儿童窝沟封闭多少钱一颗", type: "中尾", category: "服务/价格", intent: "学龄前高频需求", conv: "高", notes: "可与涂氟打包，作为儿牙科室的引流利器" },
+        { id: 40, keyword: "牙冠多少钱一个全瓷牙", type: "中尾", category: "材料/价格", intent: "根管后或牙齿断裂修复需求", conv: "高", notes: "对比国产爱尔创与进口威兰德、泽康等差异" },
+        { id: 41, keyword: "牙齿不齐怎么矫正最快", type: "长尾", category: "功能/痛点", intent: "追求效率（如即将结婚/面试），急需正畸", conv: "中", notes: "介绍隐形正畸加速器或美容冠（需说明利弊）" },
+        { id: 42, keyword: "隐适美和时代天使哪个好", type: "长尾", category: "品牌/对比", intent: "处于正畸犹豫期，需要第三方客观建议", conv: "中", notes: "GEO极易触发：做优缺点、价格、适应症表格" },
+        { id: 43, keyword: "私立牙科做种植牙靠谱吗", type: "长尾", category: "行业/信任", intent: "有意向但有顾虑，对比公立医院的安全性", conv: "中", notes: "强调“质保协议、主任级医师坐诊、消毒规范”" },
+        { id: 44, keyword: "种植牙哪个国家的材料好", type: "长尾", category: "材质/对比", intent: "处于信息收集阶段，不知如何选择种植体", conv: "中", notes: "制作“韩系/美系/德系/瑞系植体对比图”" },
+        { id: 45, keyword: "儿童窝沟封闭最佳年龄", type: "长尾", category: "功能/人群", intent: "家长做功课，为后续到店做知识储备", conv: "中", notes: "纯科普文章，文末植入低价检查/免费建档" },
+        { id: 46, keyword: "拔智齿脸会变小吗", type: "中尾", category: "场景/动机", intent: "带有美容目的的拔牙询问", conv: "中", notes: "辟谣类科普（GEO偏好回答），引导正规面诊" },
+        { id: 47, keyword: "老人种植牙私立好还是公立好", type: "长尾", category: "人群/对比", intent: "子女代查，看重服务体验与复诊便利度", conv: "中", notes: "强调私立无需排队、专车接送、服务态度好" },
+        { id: 48, keyword: "微创种植牙和传统种植牙区别", type: "长尾", category: "技术/对比", intent: "怕痛，想要伤口小恢复快的技术", conv: "中", notes: "视频科普/3D动画演示更佳" },
+        { id: 49, keyword: "牙齿贴面和全瓷牙哪个好", type: "长尾", category: "服务/对比", intent: "想改善牙齿外观，不知选哪种方案", conv: "中", notes: "给出适应症分类（缺损大选全瓷，轻微选贴面）" },
+        { id: 50, keyword: "牙周炎怎么彻底根治", type: "中尾", category: "功能/痛点", intent: "长期受苦，寻求最终解决方案", conv: "中", notes: "强调牙周治疗的长期性，引导建立终身牙医关系" },
+        { id: 51, keyword: "成人牙齿正畸还有用吗", type: "长尾", category: "人群/效果", intent: "大龄正畸顾虑，担心没效果或牙齿松动", conv: "中", notes: "展示30岁/40岁以上成功正畸的真人案例库" },
+        { id: 52, keyword: "拔牙后多久可以吃东西", type: "中尾", category: "场景/术后", intent: "已拔牙或即将拔牙的术前术后护理查询", conv: "中", notes: "提供完整的《拔牙后24小时生存指南》" },
+        { id: 53, keyword: "深覆合矫正需要拔牙吗", type: "长尾", category: "症状/方案", intent: "明确自身症状，担心拔牙的痛苦", conv: "中", notes: "AI解答高频词，解释“推磨牙向后”等不拔牙技术" },
+        { id: 54, keyword: "骨性凸嘴能正畸吗", type: "中尾", category: "症状/方案", intent: "难度较高的正畸需求，寻找非手术可能", conv: "中", notes: "区分骨性与单纯牙性，凸显专家的方案设计能力" },
+        { id: 55, keyword: "小孩看牙不配合去哪里看", type: "长尾", category: "人群/痛点", intent: "家长极度头疼，寻求有耐心或有镇静技术的诊所", conv: "中", notes: "强调诊所的“儿牙心理诱导”或“舒适化笑气”" },
+        { id: 56, keyword: "儿童防龋齿涂氟有用吗", type: "中尾", category: "功能/信任", intent: "质疑预防类项目的智商税，需要科学依据", conv: "中", notes: "引用医学文献，用通俗语言解释氟化物作用" },
+        { id: 57, keyword: "全麻儿童补牙安全吗", type: "长尾", category: "服务/安全", intent: "孩子牙烂得严重，医生建议全麻，家长极度担忧", conv: "中", notes: "详细展示麻醉团队资质、急救设备及监护流程" },
+        { id: 58, keyword: "超声波洗牙会伤害牙齿吗", type: "中尾", category: "服务/顾虑", intent: "洗牙小白的常见误区", conv: "中", notes: "动画演示洗牙原理（震碎牙结石而非磨损牙齿）" },
+        { id: 59, keyword: "即刻拔牙即刻种植好不好", type: "中尾", category: "技术/意图", intent: "追求高效率，不想经历漫长的缺牙期", conv: "中", notes: "强调该技术对医生水平和骨体量的极高要求" },
+        { id: 60, keyword: "一次拔两颗智齿可以吗", type: "中尾", category: "服务/信息", intent: "想一次性解决痛苦，询问医学可行性", conv: "中", notes: "解释同侧拔除的合理性，增加专业度体现" },
+        { id: 61, keyword: "私立口腔诊所收费是不是很贵", type: "长尾", category: "行业/顾虑", intent: "刻板印象认为私立坑钱，需要打破防线", conv: "中", notes: "强调“价格透明、无隐形消费、看牙前签字确认”" },
+        { id: 62, keyword: "金属托槽和隐形牙套区别", type: "长尾", category: "产品/对比", intent: "正畸初期的基础功课", conv: "中", notes: "图文并茂对比：美观度、舒适度、复诊频率、价格" },
+        { id: 63, keyword: "孕妇长智齿发炎怎么办", type: "长尾", category: "人群/急救", intent: "特殊人群痛点，不能乱吃药不能随便拔", conv: "中", notes: "提供孕期口腔冲洗、局部上药等安全缓解方案" },
+        { id: 64, keyword: "氟斑牙美白方法", type: "中尾", category: "症状/方案", intent: "地方性水质问题导致，冷光往往无效", conv: "中", notes: "引导至“牙齿贴面”等遮盖类高级修复项目" },
+        { id: 65, keyword: "缺牙搭桥好还是种植好", type: "中尾", category: "技术/对比", intent: "牙齿缺失，在传统连桥冠和种植间犹豫", conv: "中", notes: "图解说明搭桥需磨损邻牙，凸显种植牙优势" },
+        { id: 66, keyword: "糖尿病人能种植牙吗", type: "长尾", category: "人群/科普", intent: "慢性病患者的手术顾虑", conv: "中", notes: "说明血糖控制标准，体现门诊的内科评估能力" },
+        { id: 67, keyword: "种植牙痛不痛", type: "中尾", category: "服务/体验", intent: "手术恐惧心理作祟", conv: "中", notes: "科普局麻下的无痛感，以及术后镇痛管理" },
+        { id: 68, keyword: "牙齿咬合不齐危害", type: "中尾", category: "症状/科普", intent: "发现问题但未下定决心，需要被教育", conv: "中", notes: "列举脸型歪斜、颞下颌关节紊乱、易蛀牙等危害" },
+        { id: 69, keyword: "地包天最佳矫正年龄", type: "长尾", category: "症状/人群", intent: "患儿家长，寻求最佳干预时机", conv: "中", notes: "强调“早发现早干预”，3-5岁即可开始" },
+        { id: 70, keyword: "戴牙套怎么刷牙", type: "中尾", category: "术后/科普", intent: "已经正畸或即将正畸者的实操疑问", conv: "中", notes: "图文推荐正畸牙刷、牙缝刷和冲牙器用法" },
+        { id: 71, keyword: "正畸打骨钉疼吗", type: "中尾", category: "服务/体验", intent: "听说要打骨钉被吓退，需心理建设", conv: "中", notes: "用“蚊子叮”比喻麻药，说明骨钉操作极快" },
+        { id: 72, keyword: "正畸黑三角怎么恢复", type: "长尾", category: "症状/术后", intent: "正畸中的并发症，寻找补救措施", conv: "中", notes: "解释黑三角成因，介绍片切或牙龈修复等方案" },
+        { id: 73, keyword: "隐形牙套每天戴多久才有效", type: "长尾", category: "产品/科普", intent: "想要隐形正畸但怕自己坚持不下来", conv: "中", notes: "强调20-22小时的自律要求，否则建议金属矫正" },
+        { id: 74, keyword: "牙套脸怎么恢复", type: "中尾", category: "症状/术后", intent: "正畸导致的咬肌萎缩，求美者非常焦虑", conv: "中", notes: "给出多咀嚼、面部肌肉操等干货建议" },
+        { id: 75, keyword: "钢丝牙套磨嘴怎么办", type: "中尾", category: "症状/体验", intent: "传统正畸过程中的痛苦", conv: "中", notes: "推荐正畸保护蜡，提供人性化关怀指南" },
+        { id: 76, keyword: "小孩地包天怎么干预", type: "中尾", category: "症状/方案", intent: "家长焦急，寻找非手术的物理干预", conv: "中", notes: "介绍早期肌功能训练器或颌垫等干预方式" },
+        { id: 77, keyword: "拔乳牙打麻药影响智力吗", type: "长尾", category: "服务/顾虑", intent: "宝妈经典焦虑，对麻醉极度排斥", conv: "中", notes: "权威辟谣：局麻药效极短，不进入中枢神经" },
+        { id: 78, keyword: "儿童看牙心理疏导方法", type: "长尾", category: "服务/科普", intent: "寻找能搞定熊孩子的神仙牙医", conv: "中", notes: "展示诊所的Tell-Show-Do(说看做)行为诱导法" },
+        { id: 79, keyword: "皓齿美白和冷光哪个好", type: "中尾", category: "技术/对比", intent: "美学修复的进阶对比", conv: "中", notes: "分析两者持久度、舒适度，引导高端皓齿美白" },
+        { id: 80, keyword: "烤瓷牙发黑发臭怎么办", type: "长尾", category: "症状/术后", intent: "早期低端烤瓷牙失败，面临二次修复", conv: "中", notes: "直击痛点，引导拆除旧牙冠，更换全瓷冠" },
+        { id: 81, keyword: "牙痛快速止痛小妙招", type: "中尾", category: "场景/需求", intent: "半夜牙痛，暂时无法就医", conv: "低", notes: "TOFU流量词，提供干货后附带“尽早挂号查明病因”" },
+        { id: 82, keyword: "智齿发炎吃什么药最快", type: "中尾", category: "症状/治疗", intent: "想通过吃药解决，暂时不想去拔牙", conv: "低", notes: "给出用药建议（头孢+甲硝唑），强调治标不治本" },
+        { id: 83, keyword: "牙齿松动还能保住吗", type: "中尾", category: "症状/焦虑", intent: "牙周病晚期，害怕掉牙", conv: "低", notes: "解释松动度分级（I度II度可治，III度需拔）" },
+        { id: 84, keyword: "牙龈出血是什么原因", type: "中尾", category: "症状/信息", intent: "刷牙出血，初步健康意识觉醒", conv: "低", notes: "引导洗牙与牙周检查，转化为基础洁牙项目" },
+        { id: 85, keyword: "智齿一定要拔吗", type: "中尾", category: "症状/信息", intent: "侥幸心理，不想拔牙", conv: "低", notes: "列举“必须拔的5种智齿”，用危害（顶坏邻牙）教育用户" },
+        { id: 86, keyword: "小孩换牙期注意事项", type: "长尾", category: "人群/科普", intent: "纯科普知识收集", conv: "低", notes: "长尾内容布局，植入品牌关怀，培养长期潜在客户" },
+        { id: 87, keyword: "牙齿缺失不补有什么危害", type: "长尾", category: "症状/科普", intent: "缺牙但觉得不影响吃饭，拖延治疗", conv: "低", notes: "强调邻牙倾斜、脸型塌陷、咬合紊乱的严重后果" },
+        { id: 88, keyword: "为什么晚上牙疼得更厉害", type: "长尾", category: "症状/原理", intent: "牙髓炎典型症状，寻找原因", conv: "低", notes: "解释体位导致髓腔压力增大，强烈建议根管治疗" },
+        { id: 89, keyword: "儿童电动牙刷推荐", type: "中尾", category: "产品/外延", intent: "护齿周边需求", conv: "低", notes: "提升网站丰富度，可做简单的口腔护理周边内容" },
+        { id: 90, keyword: "补牙材料掉了怎么办", type: "中尾", category: "症状/急救", intent: "历史治疗失败，需要重新修复", conv: "低", notes: "分析掉落原因（继发龋/咬硬物），引导重新检查补牙" },
+        { id: 91, keyword: "种植牙寿命一般是几年", type: "中尾", category: "科普/材料", intent: "评估种植牙的性价比与长远投资", conv: "低", notes: "科普全球最长植体记录，强调“三分种七分养”" },
+        { id: 92, keyword: "拔牙后多久种牙比较好", type: "中尾", category: "科普/术后", intent: "规划后续治疗时间轴", conv: "低", notes: "解释常规3个月，顺势推出“即拔即种”高新技术" },
+        { id: 93, keyword: "种植前植骨是什么意思", type: "长尾", category: "科普/技术", intent: "看不懂方案中的收费项，求科普", conv: "低", notes: "用建房子打地基比喻植骨，消除过度医疗顾虑" },
+        { id: 94, keyword: "扩弓器作用是什么", type: "中尾", category: "科普/正畸", intent: "正在做正畸或即将做的材料认知", conv: "低", notes: "3D动画展示扩弓原理，体现诊所技术底蕴" },
+        { id: 95, keyword: "保持器要戴一辈子吗", type: "中尾", category: "科普/正畸", intent: "怕麻烦，正畸前的退堂鼓心理", conv: "低", notes: "诚实回答保持器的重要性，销售不同材质保持器" },
+        { id: 96, keyword: "乳牙坏了要不要补", type: "中尾", category: "科普/儿牙", intent: "误区：认为反正是要换的不用管", conv: "低", notes: "强力纠偏：乳牙坏死会影响恒牙胚发育" },
+        { id: 97, keyword: "儿童牙缝大怎么办", type: "中尾", category: "科普/儿牙", intent: "正常的生理间隙却让家长焦虑", conv: "低", notes: "安慰家长属于替牙期正常现象，树立专业良心形象" },
+        { id: 98, keyword: "换牙晚正常吗", type: "中尾", category: "科普/儿牙", intent: "同龄对比产生的焦虑", conv: "低", notes: "给出生长发育曲线表，引导拍全景片排查多生牙" },
+        { id: 99, keyword: "窝沟封闭材料脱落怎么办", type: "中尾", category: "科普/术后", intent: "项目售后问题", conv: "低", notes: "提供重新涂布服务，用良好的售后增强信任" },
+        { id: 100, keyword: "拔智齿要缝针吗", type: "中尾", category: "科普/术后", intent: "对外科操作细节的恐惧", conv: "低", notes: "解释阻生齿切开后缝合利于恢复，降低恐惧感" },
+        { id: 101, keyword: "拔牙后为什么不能吐口水", type: "长尾", category: "科普/术后", intent: "不理解医嘱的原理", conv: "低", notes: "科普血凝块的作用，预防干槽症的核心知识" },
+        { id: 102, keyword: "干槽症的早期症状表现", type: "长尾", category: "科普/术后", intent: "拔牙后剧烈疼痛引发的自我诊断", conv: "低", notes: "对照症状自查，建议立即回院复诊冲洗上药" }
+    ];
+
+    // --- 2. Initialization & Auto-Save Draft ---
+    document.addEventListener("DOMContentLoaded", () => {
+        renderKeywordTable();
+        loadKB();
+        initGenerationView();
+        loadDraft(); // 加载自动保存的草稿
+
+        // 监听输入框，一旦有输入就自动保存草稿
+        document.getElementById('gen-title-input').addEventListener('input', saveDraft);
+        document.getElementById('gen-output').addEventListener('input', saveDraft);
+    });
+
+    function saveDraft() {
+        localStorage.setItem('dental_marketing_draft_title', document.getElementById('gen-title-input').value);
+        localStorage.setItem('dental_marketing_draft_content', document.getElementById('gen-output').value);
+    }
+
+    function loadDraft() {
+        const savedTitle = localStorage.getItem('dental_marketing_draft_title');
+        const savedContent = localStorage.getItem('dental_marketing_draft_content');
+        if (savedTitle) document.getElementById('gen-title-input').value = savedTitle;
+        if (savedContent) document.getElementById('gen-output').value = savedContent;
+    }
+
+    // --- Data Import & Export (Cross-device Backup) ---
+    function exportData() {
+        const data = {
+            kb: localStorage.getItem('dental_marketing_kb'),
+            history: localStorage.getItem('dental_marketing_history'),
+            draftTitle: localStorage.getItem('dental_marketing_draft_title'),
+            draftContent: localStorage.getItem('dental_marketing_draft_content')
+        };
+        const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `牙科营销系统备份_${new Date().getTime()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('数据导出成功！请妥善保存备份文件。');
+    }
+
+    function importData(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = JSON.parse(e.target.result);
+                if (data.kb) localStorage.setItem('dental_marketing_kb', data.kb);
+                if (data.history) localStorage.setItem('dental_marketing_history', data.history);
+                if (data.draftTitle !== undefined) localStorage.setItem('dental_marketing_draft_title', data.draftTitle);
+                if (data.draftContent !== undefined) localStorage.setItem('dental_marketing_draft_content', data.draftContent);
+                showToast('数据导入成功！页面即将刷新...', false);
+                setTimeout(() => location.reload(), 1500);
+            } catch(err) {
+                showToast('导入失败，文件格式错误', true);
+            }
+        };
+        reader.readAsText(file);
+        // 清空 input，允许重复导入相同文件
+        event.target.value = '';
+    }
+
+    // --- 3. Navigation Logic ---
+    function switchTab(viewId) {
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        const navIdMap = {
+            'view-keywords': 'nav-keywords',
+            'view-kb': 'nav-kb',
+            'view-generate': 'nav-generate'
+        };
+        document.getElementById(navIdMap[viewId]).classList.add('active');
+
+        const views = ['view-keywords', 'view-kb', 'view-generate'];
+        views.forEach(v => {
+            const el = document.getElementById(v);
+            if (v === viewId) el.classList.remove('hidden');
+            else el.classList.add('hidden');
+        });
+    }
+
+    // --- 4. Keyword Table Logic ---
+    function renderKeywordTable() {
+        const searchTerm = document.getElementById('search-102').value.toLowerCase();
+        const tbody = document.getElementById('keyword-table-body');
+        
+        let filteredData = keywordsDB;
+        if (searchTerm) {
+            filteredData = keywordsDB.filter(item => 
+                item.keyword.toLowerCase().includes(searchTerm) || 
+                item.category.toLowerCase().includes(searchTerm) ||
+                item.intent.toLowerCase().includes(searchTerm) ||
+                item.conv.includes(searchTerm)
+            );
+        }
+
+        if (filteredData.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400">未找到匹配的关键词，请换个搜索词试试。</td></tr>`;
+            return;
+        }
+
+        let html = '';
+        filteredData.forEach(item => {
+            let convClass = "bg-slate-100 text-slate-600 border-slate-200";
+            if (item.conv === "高") convClass = "bg-red-50 text-red-600 border-red-200";
+            else if (item.conv === "中") convClass = "bg-orange-50 text-orange-600 border-orange-200";
+            else if (item.conv === "低") convClass = "bg-slate-100 text-slate-500 border-slate-200";
+
+            html += `
+                <tr class="hover:bg-blue-50/50 transition-colors">
+                    <td class="p-3 text-center text-slate-400 font-mono text-xs border-r border-slate-200">${item.id}</td>
+                    <td class="p-3 font-bold text-slate-800 border-r border-slate-200">${item.keyword}</td>
+                    <td class="p-3 border-r border-slate-200">
+                        <div class="flex flex-col gap-1 text-xs">
+                            <span class="text-slate-500">${item.type}</span>
+                            <span class="text-slate-600 font-medium">${item.category}</span>
+                        </div>
+                    </td>
+                    <td class="p-3 border-r border-slate-200">
+                        <span class="text-xs px-2 py-1 rounded border ${convClass}">${item.conv}转化</span>
+                    </td>
+                    <td class="p-3 text-xs text-slate-600 border-r border-slate-200">${item.intent}</td>
+                    <td class="p-3 text-xs text-slate-600 leading-snug">${item.notes}</td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+    }
+
+    // --- 5. Company Knowledge Base Logic ---
+    const kbFields = [
+        'kb-name', 'kb-company', 'kb-brand', 'kb-products', 
+        'kb-trust', 'kb-features', 'kb-target', 'kb-painpoints', 'kb-cases'
+    ];
+
+    function saveKB() {
+        const kbData = {};
+        let isValid = true;
+
+        ['kb-name', 'kb-company', 'kb-brand'].forEach(id => {
+            const el = document.getElementById(id);
+            if (!el.value.trim()) {
+                el.classList.add('border-red-400', 'bg-red-50');
+                isValid = false;
+            } else {
+                el.classList.remove('border-red-400', 'bg-red-50');
+            }
+        });
+
+        if (!isValid) {
+            showToast('请填写必填项 (*)', true);
+            return;
+        }
+
+        kbFields.forEach(id => {
+            kbData[id] = document.getElementById(id).value;
+        });
+
+        try {
+            localStorage.setItem('dental_marketing_kb', JSON.stringify(kbData));
+            showToast('公司知识库保存成功！');
+        } catch (e) {
+            showToast('保存失败，可能由于浏览器隐私设置。', true);
+        }
+    }
+
+    function loadKB() {
+        try {
+            const saved = localStorage.getItem('dental_marketing_kb');
+            if (saved) {
+                const kbData = JSON.parse(saved);
+                kbFields.forEach(id => {
+                    if (kbData[id]) {
+                        document.getElementById(id).value = kbData[id];
+                    }
+                });
+            }
+        } catch (e) {
+            console.log('No saved KB data found or accessible.');
+        }
+    }
+
+    // --- 6. Content Generation Logic ---
+    let currentAbortController = null;
+
+    function initGenerationView() {
+        const now = new Date();
+        const formattedDate = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        document.getElementById('gen-time').value = formattedDate;
+
+        filterKeywordsDropdown();
+    }
+
+    function filterKeywordsDropdown() {
+        const typeSelect = document.getElementById('gen-biz-type').value;
+        const kwSelect = document.getElementById('gen-target-keyword');
+        
+        let filtered = keywordsDB;
+        if (typeSelect !== 'all') {
+            filtered = keywordsDB.filter(k => k.category.includes(typeSelect) || k.keyword.includes(typeSelect));
+            if (filtered.length === 0) {
+                filtered = keywordsDB; 
+            }
+        }
+
+        let html = '';
+        filtered.forEach(k => {
+            html += `<option value="${k.keyword}">${k.keyword} (意图: ${k.intent})</option>`;
+        });
+        kwSelect.innerHTML = html;
+        // 注意：这里不要清空 input，以免覆盖自动加载的草稿
+    }
+
+    async function generateTitle() {
+        if (currentAbortController) currentAbortController.abort();
+        currentAbortController = new AbortController();
+        const signal = currentAbortController.signal;
+
+        const targetKeyword = document.getElementById('gen-target-keyword').value;
+        const creationType = document.getElementById('gen-creation-type').value;
+        const kbBrand = document.getElementById('kb-brand').value || '未知品牌';
+        
+        const titleInput = document.getElementById('gen-title-input');
+        const btnTitle = document.getElementById('btn-generate-title');
+
+        if (!targetKeyword) {
+            showToast('请先选择目标关键词', true);
+            return;
+        }
+
+        titleInput.value = "AI 正在分析词库，生成合规专业标题...";
+        btnTitle.disabled = true;
+        btnTitle.classList.add('opacity-50', 'cursor-not-allowed');
+
+        const titlePrompt = `你是一个深耕口腔临床医学科普的资深主治医师。请根据以下信息，严格生成【1个】专业严谨、贴近患者真实需求的健康科普/解析类文章标题。
+要求：
+1. 必须包含完整核心关键词：“${targetKeyword}”。
+2. 创作类型方向为：“${creationType}”。
+3. 严禁包含品牌名：“${kbBrand}”。
+4. 严禁包含空格、特殊符号以及“标题”二字，拒绝博眼球的夸张套路。
+5. 格式必须是：核心关键词(完整包含)+2026+(专业解析或避坑指南或深度科普，只选一个)+核心医学价值点。
+6. 只输出这1个标题的纯文本，不要任何解释，不要加书名号或引号。`;
+
+        try {
+            const apiKey = "";
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const payload = { contents: [{ parts: [{ text: titlePrompt }] }] };
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+                signal: signal
+            });
+            
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            
+            const data = await response.json();
+            let rawTitle = data.candidates?.[0]?.content?.parts?.[0]?.text || "未成功生成标题，请重试";
+            
+            // Clean up title format
+            rawTitle = rawTitle.trim().replace(/^["'《【]+|["'》】]+$/g, '');
+            titleInput.value = rawTitle;
+            saveDraft(); // 成功后自动保存草稿
+            showToast('标题生成成功！您可以手动修改润色。');
+            
+        } catch (error) {
+            if (error.name !== 'AbortError') {
+                titleInput.value = "";
+                showToast('标题生成失败：' + error.message, true);
+                console.warn("API Request failed: ", error);
+            }
+        } finally {
+            btnTitle.disabled = false;
+            btnTitle.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+    }
+
+    async function generateContent() {
+        const articleTitle = document.getElementById('gen-title-input').value.trim();
+        if (!articleTitle || articleTitle.includes('请稍候') || articleTitle.includes('AI 正在') || articleTitle.includes('失败')) {
+            showToast('请先在第一步生成有效文章标题！', true);
+            document.getElementById('gen-title-input').focus();
+            return;
+        }
+
+        if (currentAbortController) {
+            currentAbortController.abort();
+        }
+        currentAbortController = new AbortController();
+        const signal = currentAbortController.signal;
+
+        const targetKeyword = document.getElementById('gen-target-keyword').value;
+        const sysInstruction = document.getElementById('gen-instructions').value;
+        const creationType = document.getElementById('gen-creation-type').value;
+        
+        const kbData = {};
+        kbFields.forEach(id => {
+            const val = document.getElementById(id).value.trim();
+            kbData[id] = val !== '' ? val : ''; 
+        });
+
+        const userQuery = `
+[CONTEXT / 知识库及参数注入]
+已敲定的文章标题：【${articleTitle}】 (请严格围绕此标题客观展开全文)
+创作类型方向：【${creationType}】
+底层搜索关键词：【${targetKeyword}】
+品牌简称：${kbData['kb-brand'] ? kbData['kb-brand'] : '【无需提及具体品牌，仅作纯科普】'} 
+专业背书/资质：${kbData['kb-trust']}
+产品/服务明细：${kbData['kb-features']}
+客户真实案例参考：${kbData['kb-cases']}
+目标受众痛点：${kbData['kb-painpoints']}
+
+[执行请求]
+请作为资深口腔医学科普专家，严格遵循上方【核心指令】中的所有合规与创作要求。
+执行实时联网检索功能，结合最新、最权威的医疗数据，为我输出排版清晰、逻辑严谨、完全拒绝幻觉的文章正文（第一行请务必带上刚刚敲定的标题）。
+`;
+
+        const outputBox = document.getElementById('gen-output');
+        const btnGen = document.getElementById('btn-generate-ai');
+        const btnStop = document.getElementById('btn-stop-ai');
+        const btnRegen = document.getElementById('btn-regen-ai');
+        
+        // Update UI State
+        btnGen.classList.add('hidden');
+        btnRegen.classList.add('hidden');
+        btnStop.classList.remove('hidden');
+
+        outputBox.value = "AI 正在严格检索真实医学数据并创作中...\n（启动反幻觉验证机制，通常需要 10-30 秒，请稍候）";
+
+        const delays = [1000, 2000, 4000, 8000, 16000];
+        let attempt = 0;
+        let success = false;
+        let resultText = "";
+        
+        const apiKey = "";
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+        const payload = {
+            contents: [{ parts: [{ text: userQuery }] }],
+            systemInstruction: { parts: [{ text: sysInstruction }] },
+            tools: [{ "googleSearch": {} }] // Enable Google Search grounding
+        };
+
+        try {
+            while (attempt <= 5 && !success) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload),
+                        signal: signal
+                    });
+                    
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    
+                    const responseData = await response.json();
+                    resultText = responseData.candidates?.[0]?.content?.parts?.[0]?.text || "生成内容为空，请重试。";
+                    success = true;
+                    
+                } catch (error) {
+                    if (error.name === 'AbortError') {
+                        throw error; // escape loop
+                    }
+                    if (attempt < 5) {
+                        await new Promise((resolve, reject) => {
+                            const timeoutId = setTimeout(resolve, delays[attempt]);
+                            signal.addEventListener('abort', () => {
+                                clearTimeout(timeoutId);
+                                reject(new DOMException('Aborted', 'AbortError'));
+                            }, { once: true });
+                        });
+                        attempt++;
+                    } else {
+                        resultText = "AI 接口调用失败，请检查网络或稍后重试。";
+                        break;
+                    }
+                }
+            }
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                resultText = "✅ 生成已手动停止。\n\n您可以调整关键词或标题后重新生成。";
+                success = false;
+            } else {
+                resultText = "系统发生错误：" + error.message;
+            }
+        }
+
+        // Reset UI State
+        outputBox.value = resultText;
+        btnStop.classList.add('hidden');
+        btnGen.classList.add('hidden');
+        btnRegen.classList.remove('hidden');
+        
+        if (success) {
+            saveDraft(); // 成功后自动保存草稿
+            showToast('正文生成完毕！已自动保存草稿。');
+        } else if (resultText.includes("已手动停止")) {
+            showToast('已停止生成', false);
+        } else {
+            showToast('生成失败', true);
+        }
+    }
+
+    function stopGeneration() {
+        if (currentAbortController) {
+            currentAbortController.abort();
+        }
+    }
+
+    // --- 7. History & Copy Logic ---
+    function openHistoryModal() {
+        document.getElementById('history-modal').classList.remove('hidden');
+        renderHistoryTable();
+    }
+
+    function closeHistoryModal() {
+        document.getElementById('history-modal').classList.add('hidden');
+    }
+
+    function saveGeneratedArticle() {
+        const content = document.getElementById('gen-output').value.trim();
+        if (!content || content.includes('AI 正在') || content.includes('点击上方按钮开始生成')) {
+            showToast('没有可保存的有效内容', true);
+            return;
+        }
+
+        const keyword = document.getElementById('gen-target-keyword').value || '未命名主题';
+        const type = document.getElementById('gen-creation-type').value;
+        const inputTitle = document.getElementById('gen-title-input').value.trim();
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        
+        let title = inputTitle;
+        if(!title) {
+             const firstLine = content.split('\n').find(line => line.trim().length > 0) || '';
+             const preview = firstLine.substring(0, 25) + (firstLine.length > 25 ? '...' : '');
+             title = `【${keyword}】${preview}`;
+        }
+
+        const article = {
+            id: 'art_' + Date.now(),
+            keyword: keyword,
+            type: type,
+            title: title,
+            content: content,
+            time: dateStr
+        };
+
+        let history = JSON.parse(localStorage.getItem('dental_marketing_history') || '[]');
+        history.unshift(article);
+        localStorage.setItem('dental_marketing_history', JSON.stringify(history));
+
+        showToast('文章已保存至历史记录！');
+    }
+
+    function renderHistoryTable() {
+        let history = JSON.parse(localStorage.getItem('dental_marketing_history') || '[]');
+        const tbody = document.getElementById('history-table-body');
+        
+        if (history.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400">暂无已产出的文章历史记录。</td></tr>`;
+            document.getElementById('history-select-all').checked = false;
+            return;
+        }
+
+        let html = '';
+        history.forEach(item => {
+            html += `
+                <tr class="hover:bg-blue-50/30 transition-colors border-b border-slate-100 group">
+                    <td class="p-3 text-center border-r border-slate-100">
+                        <input type="checkbox" class="history-checkbox w-4 h-4 text-blue-600 rounded border-slate-300 cursor-pointer" value="${item.id}">
+                    </td>
+                    <td class="p-3 font-medium text-slate-800 border-r border-slate-100 max-w-xs truncate" title="${item.title}">
+                        ${item.title}
+                    </td>
+                    <td class="p-3 text-xs text-slate-500 border-r border-slate-100">${item.type}</td>
+                    <td class="p-3 text-xs text-slate-500 border-r border-slate-100">${item.time}</td>
+                    <td class="p-3 text-xs text-slate-600">
+                        <div class="flex items-center gap-3">
+                            <button onclick="loadArticleToEditor('${item.id}')" class="text-blue-600 hover:text-blue-800 font-medium transition-colors">加载/修改</button>
+                            <button onclick="copyHistoryArticle('${item.id}')" class="text-emerald-600 hover:text-emerald-800 font-medium transition-colors">复制</button>
+                            <button onclick="deleteSingleArticle('${item.id}')" class="text-slate-400 hover:text-red-600 font-medium transition-colors opacity-0 group-hover:opacity-100">删除</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+        document.getElementById('history-select-all').checked = false;
+    }
+
+    function toggleSelectAllHistory(source) {
+        const checkboxes = document.querySelectorAll('.history-checkbox');
+        checkboxes.forEach(cb => cb.checked = source.checked);
+    }
+
+    function deleteSingleArticle(id) {
+        if (!confirm('确定要删除这条记录吗？不可恢复。')) return;
+        let history = JSON.parse(localStorage.getItem('dental_marketing_history') || '[]');
+        history = history.filter(item => item.id !== id);
+        localStorage.setItem('dental_marketing_history', JSON.stringify(history));
+        renderHistoryTable();
+        showToast('记录已删除');
+    }
+
+    function bulkDeleteHistory() {
+        const checkboxes = document.querySelectorAll('.history-checkbox:checked');
+        if (checkboxes.length === 0) {
+            showToast('请先选择要删除的记录', true);
+            return;
+        }
+        if (!confirm(`确定要删除选中的 ${checkboxes.length} 条记录吗？不可恢复。`)) return;
+
+        const idsToDelete = Array.from(checkboxes).map(cb => cb.value);
+        let history = JSON.parse(localStorage.getItem('dental_marketing_history') || '[]');
+        history = history.filter(item => !idsToDelete.includes(item.id));
+        
+        localStorage.setItem('dental_marketing_history', JSON.stringify(history));
+        renderHistoryTable();
+        showToast(`已删除 ${idsToDelete.length} 条记录`);
+    }
+
+    function loadArticleToEditor(id) {
+        let history = JSON.parse(localStorage.getItem('dental_marketing_history') || '[]');
+        const article = history.find(item => item.id === id);
+        if (article) {
+            document.getElementById('gen-title-input').value = article.title;
+            document.getElementById('gen-output').value = article.content;
+            saveDraft(); // 加载后更新草稿
+            closeHistoryModal();
+            showToast('文章已加载，可直接进行修改');
+        }
+    }
+
+    function copyHistoryArticle(id) {
+        let history = JSON.parse(localStorage.getItem('dental_marketing_history') || '[]');
+        const article = history.find(item => item.id === id);
+        if (article) {
+            const textArea = document.createElement("textarea");
+            textArea.value = article.content;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast('已从历史记录复制到剪贴板！');
+            } catch (err) {
+                showToast('复制失败', true);
+            }
+            document.body.removeChild(textArea);
+        }
+    }
+
+    function copyGeneratedContent() {
+        const content = document.getElementById('gen-output').value;
+        if (!content || content.includes('AI 正在') || content.includes('已手动停止')) {
+            showToast('请先成功生成有效文章', true);
+            return;
+        }
+
+        const textArea = document.createElement("textarea");
+        textArea.value = content;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            showToast('内容已复制到剪贴板！');
+        } catch (err) {
+            console.error('Copy failed', err);
+            showToast('复制失败', true);
+        }
+        document.body.removeChild(textArea);
+    }
+
+    // --- 8. Utilities ---
+    function showToast(msg, isError = false) {
+        const toast = document.getElementById('toast');
+        document.getElementById('toast-msg').innerText = msg;
+        
+        if (isError) {
+            toast.classList.remove('bg-slate-800');
+            toast.classList.add('bg-red-600');
+            document.getElementById('toast-icon').innerHTML = '&#10007;';
+        } else {
+            toast.classList.remove('bg-red-600');
+            toast.classList.add('bg-slate-800');
+            document.getElementById('toast-icon').innerHTML = '&#10003;';
+        }
+
+        toast.classList.remove('opacity-0');
+        toast.classList.add('opacity-100');
+        
+        setTimeout(() => {
+            toast.classList.remove('opacity-100');
+            toast.classList.add('opacity-0');
+        }, 2500);
+    }
+</script>
+</body>
+</html>
